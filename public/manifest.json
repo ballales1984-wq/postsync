@@ -1,0 +1,27 @@
+{
+  "name": "PostSync - AI Social Content Generator",
+  "short_name": "PostSync",
+  "description": "From link to social content in 1 click. AI that transforms content into posts for X, Instagram, LinkedIn, Facebook and Threads.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "social", "business"],
+  "lang": "it",
+  "dir": "ltr"
+}
