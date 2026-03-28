@@ -1,4 +1,4 @@
-export type Platform = "twitter" | "instagram" | "linkedin" | "facebook";
+export type Platform = "twitter" | "instagram" | "linkedin" | "facebook" | "threads";
 
 export interface GenerateOptions {
   topic: string;
@@ -66,6 +66,8 @@ const PLATFORM_INSTRUCTIONS: Record<Platform, string> = {
     "Paragrafi brevi con line breaks. Tono professionale ma personale. Includi insight. Chiudi con una domanda. NON usare markdown.",
   facebook:
     "Tono conversazionale. Max 1000 caratteri. Includi domanda o call-to-action per interazione. NON usare markdown.",
+  threads:
+    "Max 500 caratteri. Tono autentico e personale, come una conversazione. Usa emoji con moderazione. NON usare markdown.",
 };
 
 const PLATFORM_CONFIG: Record<Platform, { name: string; maxChars: number; icon: string }> = {
@@ -73,6 +75,7 @@ const PLATFORM_CONFIG: Record<Platform, { name: string; maxChars: number; icon: 
   instagram: { name: "Instagram", maxChars: 2200, icon: "📷" },
   linkedin: { name: "LinkedIn", maxChars: 3000, icon: "💼" },
   facebook: { name: "Facebook", maxChars: 63206, icon: "👤" },
+  threads: { name: "Threads", maxChars: 500, icon: "🧵" },
 };
 
 export { PLATFORM_CONFIG };

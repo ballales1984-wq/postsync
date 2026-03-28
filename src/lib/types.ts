@@ -1,4 +1,4 @@
-export type Platform = "twitter" | "instagram" | "linkedin" | "facebook";
+export type Platform = "twitter" | "instagram" | "linkedin" | "facebook" | "threads";
 
 export interface Post {
   id: number;
@@ -38,4 +38,5 @@ export const PLATFORM_CONFIG: Record<
   instagram: { name: "Instagram", maxChars: 2200, color: "#E4405F", icon: "📷", oauthSupported: true },
   linkedin: { name: "LinkedIn", maxChars: 3000, color: "#0A66C2", icon: "💼", oauthSupported: true },
   facebook: { name: "Facebook", maxChars: 63206, color: "#1877F2", icon: "👤", oauthSupported: true },
+  threads: { name: "Threads", maxChars: 500, color: "#000000", icon: "🧵", oauthSupported: true },
 };

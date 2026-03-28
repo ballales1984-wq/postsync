@@ -665,6 +665,7 @@ function generateHashtags(text: string, platform: Platform): string {
     instagram: 10,
     linkedin: 5,
     facebook: 5,
+    threads: 3,
   };
 
   const generic = ["#socialmedia", "#contentcreator", "#marketing", "#ai", "#postsync"];

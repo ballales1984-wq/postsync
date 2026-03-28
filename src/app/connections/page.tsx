@@ -24,6 +24,10 @@ const OAUTH_CONFIG: Record<
     description: "Pubblica post sulle tue pagine Facebook.",
     scopes: ["pages_manage_posts", "pages_read_engagement", "pages_show_list"],
   },
+  threads: {
+    description: "Pubblica thread e post su Threads (via Meta).",
+    scopes: ["threads_basic", "threads_content_publish"],
+  },
 };
 
 function ConnectionsContent() {

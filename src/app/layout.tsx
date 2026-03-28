@@ -18,7 +18,18 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "PostSync - L'AI che scrive i tuoi post social",
-  description: "Genera post perfetti per X, Instagram, LinkedIn e Facebook con l'AI. Copia e pubblica in un click.",
+  description: "Genera post perfetti per X, Instagram, LinkedIn, Facebook e Threads con l'AI. Copia e pubblica in un click.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PostSync",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  },
 };
 
 export default function RootLayout({
@@ -48,6 +59,17 @@ _iub.csConfiguration = {"siteId":4477711,"cookiePolicyId":90455251,"lang":"en","
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-4H8PKV46MQ');
+          `}
+        </Script>
+        {/* PWA */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
+        <Script id="sw-register" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
           `}
         </Script>
       </head>
