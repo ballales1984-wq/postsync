@@ -246,3 +246,35 @@ Deve essere ORIGINALE, non copia. Trasforma il contenuto in un messaggio coinvol
 
   return results as Record<Platform, string>;
 }
+
+export async function generateVariants(
+  topic: string,
+  platform: Platform,
+  count: number = 5,
+  apiKey?: string
+): Promise<{ variant: number; content: string; tone: string }[]> {
+  const tones = ["professionale", "casual", "entusiasta", "informativo", "virale"];
+  const variants: { variant: number; content: string; tone: string }[] = [];
+
+  for (let i = 0; i < Math.min(count, tones.length); i++) {
+    const toneInstruction = TEMPLATES[i % TEMPLATES.length].instruction;
+    const systemPrompt = `Sei un esperto di social media marketing. Scrivi un post in tono ${tones[i]}.
+
+Regole:
+- Scrivi SOLO il contenuto del post
+- Scrivi in italiano
+- ${PLATFORM_INSTRUCTIONS[platform]}
+- ${toneInstruction}
+- NON usare markdown
+- Ogni variante deve essere DIVERSA dalle altre`;
+
+    try {
+      const content = await callAI(systemPrompt, `Tema: ${topic}`, apiKey);
+      variants.push({ variant: i + 1, content: content.trim(), tone: tones[i] });
+    } catch {
+      variants.push({ variant: i + 1, content: "Errore generazione", tone: tones[i] });
+    }
+  }
+
+  return variants;
+}

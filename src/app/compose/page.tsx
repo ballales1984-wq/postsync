@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/Toast";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { Platform, PLATFORM_CONFIG, TEMPLATES, WeekPlan } from "@/lib/ai";
 
-type Tab = "single" | "all" | "week" | "link";
+type Tab = "single" | "all" | "week" | "link" | "variants" | "images";
 
 export default function ComposePage() {
   const { showToast } = useToast();
@@ -28,6 +28,13 @@ export default function ComposePage() {
   // Week plan state
   const [weekPlan, setWeekPlan] = useState<WeekPlan[]>([]);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
+
+  // Variants state
+  const [variants, setVariants] = useState<{ variant: number; content: string; tone: string }[]>([]);
+
+  // Images state
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [carouselSlides, setCarouselSlides] = useState<{ title: string; content: string; imagePrompt: string }[]>([]);
 
   // Link extraction state
   const [inputUrl, setInputUrl] = useState("");
@@ -170,6 +177,74 @@ export default function ComposePage() {
     }
   };
 
+  const handleGenerateVariants = async () => {
+    if (!topic.trim()) return;
+    setIsGenerating(true);
+    setVariants([]);
+
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: topic.trim(),
+          platform: selectedPlatform,
+          variants: 5,
+          apiKey: localStorage.getItem("groq_api_key") || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setVariants(data.variants);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Errore", "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateImages = async () => {
+    if (!topic.trim()) return;
+    setIsGenerating(true);
+    setGeneratedImages([]);
+
+    try {
+      const res = await fetch("/api/images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: topic.trim(), type: "multiple", count: 3 }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setGeneratedImages(data.images);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Errore", "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateCarousel = async () => {
+    if (!topic.trim()) return;
+    setIsGenerating(true);
+    setCarouselSlides([]);
+
+    try {
+      const res = await fetch("/api/images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: topic.trim(), type: "carousel", count: 5 }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setCarouselSlides(data.slides);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Errore", "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const platforms: Platform[] = ["twitter", "instagram", "linkedin", "facebook"];
 
   return (
@@ -178,11 +253,13 @@ export default function ComposePage() {
       <p className="text-gray-500 mb-8">Scrivi il tema, scegli il template, genera e copia.</p>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         {([
-          { key: "single" as Tab, label: "📱 Singolo social" },
-          { key: "all" as Tab, label: "🌐 Tutti i social" },
+          { key: "single" as Tab, label: "📱 Singolo" },
+          { key: "all" as Tab, label: "🌐 Tutti" },
           { key: "link" as Tab, label: "🔗 Da Link" },
+          { key: "variants" as Tab, label: "🔄 Varianti" },
+          { key: "images" as Tab, label: "🖼️ Immagini" },
           { key: "week" as Tab, label: "📅 7 giorni" },
         ]).map(({ key, label }) => (
           <button
@@ -289,6 +366,10 @@ export default function ComposePage() {
               ? handleGenerateAll
               : tab === "link"
               ? handleGenerateFromLink
+              : tab === "variants"
+              ? handleGenerateVariants
+              : tab === "images"
+              ? handleGenerateImages
               : handleGenerateWeek
           }
           disabled={isGenerating || (tab === "link" ? !inputUrl.trim() : !topic.trim())}
@@ -304,13 +385,17 @@ export default function ComposePage() {
             </>
           ) : (
             <>
-              {tab === "link" ? "🔗" : "✨"}{" "}
+              {tab === "link" ? "🔗" : tab === "images" ? "🖼️" : "✨"}{" "}
               {tab === "single"
                 ? `Genera per ${PLATFORM_CONFIG[selectedPlatform].name}`
                 : tab === "all"
                 ? "Genera per tutti i social"
                 : tab === "link"
                 ? "Estrai contenuto e genera post"
+                : tab === "variants"
+                ? "Genera 5 varianti diverse"
+                : tab === "images"
+                ? "Genera 3 immagini AI"
                 : "Genera 7 giorni di contenuti"}
             </>
           )}
@@ -422,6 +507,84 @@ export default function ComposePage() {
           >
             {copiedKey === "all-copy" ? "✓ Tutto copiato!" : "📋 Copia tutti i post"}
           </button>
+        </div>
+      )}
+
+      {/* Variants result */}
+      {tab === "variants" && variants.length > 0 && (
+        <div className="space-y-4">
+          {variants.map((v) => (
+            <div key={v.variant} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <span className="text-sm font-medium text-gray-900">Variante {v.variant}</span>
+                  <span className="ml-2 text-xs bg-gray-100 px-2 py-0.5 rounded">{v.tone}</span>
+                </div>
+                <button
+                  onClick={() => handleCopy(v.content, `variant-${v.variant}`)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    copiedKey === `variant-${v.variant}`
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {copiedKey === `variant-${v.variant}` ? "✓ Copiato!" : "📋 Copia"}
+                </button>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap">
+                {v.content}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Images result */}
+      {tab === "images" && generatedImages.length > 0 && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {generatedImages.map((img, i) => (
+              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img} alt={`Generated ${i + 1}`} className="w-full aspect-square object-cover" />
+                <div className="p-3">
+                  <button
+                    onClick={() => {
+                      const link = document.createElement("a");
+                      link.href = img;
+                      link.download = `postsync-image-${i + 1}.jpg`;
+                      link.click();
+                    }}
+                    className="w-full px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+                  >
+                    📥 Scarica
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={handleGenerateCarousel}
+            disabled={isGenerating}
+            className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
+          >
+            🎠 Genera Carousel (5 slide)
+          </button>
+          {carouselSlides.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">Carousel Slide</h3>
+              <div className="grid grid-cols-5 gap-2">
+                {carouselSlides.map((slide, i) => (
+                  <div key={i} className="text-center">
+                    <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-2xl mb-1">
+                      {i + 1}
+                    </div>
+                    <p className="text-xs text-gray-600 truncate">{slide.title}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generatePost, generateAllPlatforms, generateWeekContent } from "@/lib/ai";
+import { generatePost, generateAllPlatforms, generateWeekContent, generateVariants } from "@/lib/ai";
 
 // Simple in-memory rate limiting (resets on server restart)
 const usageMap: Record<string, { count: number; date: string }> = {};
@@ -39,7 +39,7 @@ function incrementUsage(ip: string) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { topic, platform, template, language, allPlatforms, week, apiKey } = body;
+    const { topic, platform, template, language, allPlatforms, week, variants, apiKey } = body;
 
     if (!topic) {
       return NextResponse.json({ error: "Topic is required" }, { status: 400 });
@@ -57,6 +57,13 @@ export async function POST(request: NextRequest) {
         },
         { status: 429 }
       );
+    }
+
+    // Generate multiple variants
+    if (variants && platform) {
+      const result = await generateVariants(topic, platform, variants, apiKey);
+      if (!hasCustomKey) incrementUsage(clientIp);
+      return NextResponse.json({ variants: result, remaining: hasCustomKey ? Infinity : remaining - 1 });
     }
 
     const options = { topic, platform, template, language, apiKey };
