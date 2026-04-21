@@ -54,34 +54,18 @@ async function getGa4AccessToken(): Promise<string | null> {
   }
 }
 
-  try {
-    const res = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
-    });
-    const data = await res.json();
-    return data.access_token || null;
-  } catch {
-    return null;
-  }
-}
-
 function normalizeGa4Id(id: string): string {
+  if (!id) return "";
   return id.replace(/^G-/, "").replace(/^properties\//, "");
 }
 
 async function fetchGa4Data(days: number) {
   if (!GA4_PROPERTY_ID || !GA4_PRIVATE_KEY || !GA4_CLIENT_EMAIL) {
-    console.log("GA4 not configured:", { hasProp: !!GA4_PROPERTY_ID, hasKey: !!GA4_PRIVATE_KEY, hasEmail: !!GA4_CLIENT_EMAIL });
     return null;
   }
 
   const accessToken = await getGa4AccessToken();
-  if (!accessToken) {
-    console.log("Failed to get GA4 access token");
-    return null;
-  }
+  if (!accessToken) return null;
 
   const propertyId = normalizeGa4Id(GA4_PROPERTY_ID);
   const startDate = new Date();
@@ -100,8 +84,15 @@ async function fetchGa4Data(days: number) {
       },
       body: JSON.stringify({
         dateRanges: [{ startDate: startDateStr, endDate: endDateStr }],
-        dimensions: [{ name: " country" }, { name: "firstUserSource" }],
-        metrics: [{ name: "activeUsers" }, { name: "sessions" }, { name: "totalUsers" }],
+        metrics: [
+          { name: "activeUsers" },
+          { name: "sessions" },
+          { name: "totalUsers" }
+        ],
+        dimensions: [
+          { name: "firstUserSource" },
+          { name: "country" }
+        ],
       }),
     });
 
@@ -119,7 +110,6 @@ export async function GET(request: Request) {
     const period = searchParams.get("period") || "7d";
     const days = period === "30d" ? 30 : 7;
 
-    // Try GA4 API first
     const ga4Data = await fetchGa4Data(days);
 
     if (ga4Data && ga4Data.rows) {
@@ -127,13 +117,13 @@ export async function GET(request: Request) {
       let totalViews = 0;
       let totalVisitors = 0;
 
-      ga4Data.rows?.forEach((row: { dimensionValues: { value: string }[]; metricValues: { value: string }[] }) => {
-        const source = row.dimensionValues[1]?.value || "direct";
-        const users = parseInt(row.metricValues[0]?.value || "0");
+      for (const row of ga4Data.rows) {
+        const source = row.dimensionValues?.[0]?.value || "direct";
+        const users = parseInt(row.metricValues?.[0]?.value || "0", 10);
         sources[source] = (sources[source] || 0) + users;
         totalVisitors += users;
-        totalViews += parseInt(row.metricValues[1]?.value || "0");
-      });
+        totalViews += parseInt(row.metricValues?.[1]?.value || "0", 10);
+      }
 
       return NextResponse.json({
         views: totalViews,
@@ -147,7 +137,6 @@ export async function GET(request: Request) {
       });
     }
 
-    // Fallback to in-memory (empty if no GA4)
     return NextResponse.json({
       views: 0,
       visitors: 0,
