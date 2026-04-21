@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const sourcesText = Object.entries(data.sources || {})
-      .map(([s, c]) => `${s}: ${c}`);
+      .map(([s, c]) => `${s}: ${c}`)
       .join(", ");
 
     const pagesText = Object.entries(data.pages || {})

@@ -95,8 +95,8 @@ export default function AnalyticsPage() {
               disabled={analyzing || !data?.views}
               className={`px-4 py-2 rounded flex items-center gap-2 ${
                 analyzing || !data?.views
-                  ? 'bgneutral-700 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-500 hover:to-blue-500'
+                  ? 'bg-neutral-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-purple-600 text-white hover:bg-purple-500'
               }`}
             >
               <span>{analyzing ? '🔄' : '🤖'}</span>
@@ -203,10 +203,11 @@ export default function AnalyticsPage() {
             </h2>
             <div className="prose prose-invert max-w-none">
               {analysisResult.split('\n').map((line, i) => {
-                if (line.startsWith('📈') || line.startsWith('💡') || line.startsWith('🎯') || line.startsWith('📱'))) {
+                const firstChar = line.charAt(0);
+                if (['📈', '💡', '🎯', '📱'].includes(firstChar)) {
                   return <h3 key={i} className="text-lg font-semibold text-purple-400 mt-4 mb-2">{line}</h3>;
                 }
-                if (line.startsWith('- ') || line.startsWith('• ')) {
+                if (line.startsWith('- ') || line.startsWith('* ')) {
                   return <li key={i} className="text-gray-300 ml-4">{line}</li>;
                 }
                 return <p key={i} className="text-gray-300">{line}</p>;
