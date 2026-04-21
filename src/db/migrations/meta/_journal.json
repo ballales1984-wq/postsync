@@ -15,6 +15,13 @@
       "when": 1774562746016,
       "tag": "0001_dry_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1745272800000,
+      "tag": "0002_analytics_events",
+      "breakpoints": true
     }
   ]
 }
