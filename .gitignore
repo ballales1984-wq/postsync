@@ -4,6 +4,10 @@
 /node_modules
 /.pnp
 .pnp.*
+
+# Tauri build
+src-tauri/target/
+src-tauri/gen/
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
