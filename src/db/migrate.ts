@@ -1,11 +1,8 @@
 import { runMigrations } from "@kilocode/app-builder-db";
 import { db } from "./index";
 
-const url = process.env.DB_URL;
-const token = process.env.DB_TOKEN;
-
-if (!url || !token) {
-  console.log("Skipping migrations: DB_URL or DB_TOKEN not set");
+if (!process.env.DB_URL || !process.env.DB_TOKEN) {
+  console.log("Skipping migrations: DB_URL and DB_TOKEN not configured");
   process.exit(0);
 }
 
