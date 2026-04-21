@@ -12,10 +12,18 @@ interface AnalyticsData {
   period: number;
 }
 
+interface AnalysisResult {
+  analysis: string;
+  data: AnalyticsData;
+}
+
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'7d' | '30d'>('7d');
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -31,6 +39,30 @@ export default function AnalyticsPage() {
     }
     fetchAnalytics();
   }, [period]);
+
+  async function handleAnalyze() {
+    setAnalyzing(true);
+    setAnalysisError(null);
+    setAnalysisResult(null);
+
+    try {
+      const res = await fetch(`/api/analytics/analyze?period=${period}`, {
+        method: 'POST',
+      });
+      const json: AnalysisResult = await res.json();
+
+      if (json.error) {
+        setAnalysisError(json.error);
+      } else {
+        setAnalysisResult(json.analysis);
+      }
+    } catch (error) {
+      setAnalysisError('Errore durante l\'analisi');
+      console.error('Analysis error:', error);
+    } finally {
+      setAnalyzing(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -58,6 +90,18 @@ export default function AnalyticsPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-white">Analytics</h1>
           <div className="flex gap-2">
+            <button
+              onClick={handleAnalyze}
+              disabled={analyzing || !data?.views}
+              className={`px-4 py-2 rounded flex items-center gap-2 ${
+                analyzing || !data?.views
+                  ? 'bgneutral-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-500 hover:to-blue-500'
+              }`}
+            >
+              <span>{analyzing ? '🔄' : '🤖'}</span>
+              <span>{analyzing ? 'Analisi in corso...' : 'Analizza con AI'}</span>
+            </button>
             <button
               onClick={() => setPeriod('7d')}
               className={`px-4 py-2 rounded ${
@@ -150,6 +194,32 @@ export default function AnalyticsPage() {
             </div>
           </div>
         </div>
+
+        {analysisResult && (
+          <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg p-6 mb-8 border border-purple-500/30">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <span>🤖</span>
+              <span>AI Insights</span>
+            </h2>
+            <div className="prose prose-invert max-w-none">
+              {analysisResult.split('\n').map((line, i) => {
+                if (line.startsWith('📈') || line.startsWith('💡') || line.startsWith('🎯') || line.startsWith('📱'))) {
+                  return <h3 key={i} className="text-lg font-semibold text-purple-400 mt-4 mb-2">{line}</h3>;
+                }
+                if (line.startsWith('- ') || line.startsWith('• ')) {
+                  return <li key={i} className="text-gray-300 ml-4">{line}</li>;
+                }
+                return <p key={i} className="text-gray-300">{line}</p>;
+              })}
+            </div>
+          </div>
+        )}
+
+        {analysisError && (
+          <div className="bg-red-900/30 border border-red-500 rounded-lg p-4 mb-8">
+            <p className="text-red-400">{analysisError}</p>
+          </div>
+        )}
 
         <div className="bg-neutral-800 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-white mb-4">Views Over Time</h2>
