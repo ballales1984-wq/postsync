@@ -13,8 +13,9 @@ interface AnalyticsData {
 }
 
 interface AnalysisResult {
-  analysis: string;
-  data: AnalyticsData;
+  analysis?: string;
+  data?: AnalyticsData;
+  error?: string;
 }
 
 export default function AnalyticsPage() {
@@ -53,8 +54,10 @@ export default function AnalyticsPage() {
 
       if (json.error) {
         setAnalysisError(json.error);
-      } else {
+      } else if (json.analysis) {
         setAnalysisResult(json.analysis);
+      } else {
+        setAnalysisError('Risposta non valida');
       }
     } catch (error) {
       setAnalysisError('Errore durante l\'analisi');
@@ -92,7 +95,7 @@ export default function AnalyticsPage() {
           <div className="flex gap-2">
             <button
               onClick={handleAnalyze}
-              disabled={analyzing || !data?.views}
+              disabled={analyzing || loading}
               className={`px-4 py-2 rounded flex items-center gap-2 ${
                 analyzing || !data?.views
                   ? 'bg-neutral-700 text-gray-500 cursor-not-allowed'
