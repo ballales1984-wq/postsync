@@ -6,6 +6,8 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import "./globals.css";
 
+const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID || "";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -49,19 +51,23 @@ _iub.csConfiguration = {"siteId":4477711,"cookiePolicyId":90455251,"lang":"en","
         <Script src="https://cs.iubenda.com/autoblocking/4477711.js" strategy="afterInteractive" />
         <Script src="//cdn.iubenda.com/cs/gpp/stub.js" strategy="afterInteractive" />
         <Script src="//cdn.iubenda.com/cs/iubenda_cs.js" strategy="afterInteractive" charSet="UTF-8" />
-        {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-4H8PKV46MQ"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-4H8PKV46MQ');
-          `}
-        </Script>
+        {/* Google Analytics - config via NEXT_PUBLIC_GA4_ID env variable */}
+        {GA4_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA4_ID}');
+              `}
+            </Script>
+          </>
+        )}
         {/* PWA */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
