@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 # System Patterns: Next.js Starter Template
+=======
+# System Patterns: PostSync
+>>>>>>> 71772c2f1f458ae834f7acdc35b3c10d96c6e547
 
 ## Architecture Overview
 
 ```
 src/
+<<<<<<< HEAD
 ├── app/                    # Next.js App Router
 │   ├── layout.tsx          # Root layout + metadata
 │   ├── page.tsx            # Home page
@@ -13,10 +18,39 @@ src/
     ├── components/         # React components (add when needed)
     ├── lib/                # Utilities and helpers (add when needed)
     └── db/                 # Database files (add via recipe)
+=======
+├── app/
+│   ├── layout.tsx               # Root layout with navigation
+│   ├── page.tsx                 # Landing page
+│   ├── compose/page.tsx         # Post composer (text, images, schedule, previews)
+│   ├── dashboard/page.tsx       # Post management dashboard
+│   ├── connections/page.tsx     # Social account OAuth connections
+│   └── api/
+│       ├── posts/               # Posts CRUD
+│       └── social-accounts/     # Social accounts CRUD
+├── components/
+│   ├── ui/
+│   │   ├── ImageUpload.tsx      # Drag-and-drop image upload
+│   │   ├── SchedulePicker.tsx   # Date/time scheduling
+│   │   ├── CharLimitWarning.tsx # Character limit warnings
+│   │   └── PostCard.tsx         # Post display card
+│   └── previews/
+│       ├── TwitterPreview.tsx   # X format preview (with image)
+│       ├── InstagramPreview.tsx # Instagram format preview
+│       ├── LinkedInPreview.tsx  # LinkedIn format preview
+│       └── FacebookPreview.tsx  # Facebook format preview
+├── db/
+│   ├── schema.ts                # Posts + socialAccounts tables
+│   ├── index.ts                 # Database client
+│   └── migrations/              # Generated SQL migrations
+└── lib/
+    └── types.ts                 # Platform, Post, SocialAccount types
+>>>>>>> 71772c2f1f458ae834f7acdc35b3c10d96c6e547
 ```
 
 ## Key Design Patterns
 
+<<<<<<< HEAD
 ### 1. App Router Pattern
 
 Uses Next.js App Router with file-based routing:
@@ -118,3 +152,29 @@ For simple needs:
 For complex needs (add when necessary):
 - Zustand for client state
 - React Query for server state
+=======
+### 1. Server Components by Default
+- Layout and static pages are Server Components
+- Interactive pages use `"use client"`
+
+### 2. RESTful API Routes
+CRUD for both posts and social accounts.
+
+### 3. Platform Type System
+- `PLATFORM_CONFIG` maps platform to display info
+- `OAUTH_CONFIG` maps platform to OAuth settings
+- Platforms stored as JSON string in DB
+
+### 4. Preview Components with Image Support
+- Accept both `content` and `imageUrl` props
+- Faithful UI representation per platform
+
+### 5. Image Handling
+- Base64 data URLs for demo
+- Drag-and-drop with FileReader API
+
+### 6. OAuth Architecture (Demo Mode)
+- `socialAccounts` table with accessToken/refreshToken fields
+- Demo mode with manual account input
+- Ready for real OAuth flows
+>>>>>>> 71772c2f1f458ae834f7acdc35b3c10d96c6e547
