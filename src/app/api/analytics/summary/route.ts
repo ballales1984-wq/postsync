@@ -108,14 +108,12 @@ async function fetchGa4Data(days: number) {
 }
 
 async function fetchLocalData(days: number) {
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
-  startDate.setHours(0, 0, 0, 0);
+  const startTimestamp = Date.now() - days * 24 * 60 * 60 * 1000;
 
   const events = await db
     .select()
     .from(analyticsEvents)
-    .where(gte(analyticsEvents.timestamp, startDate));
+    .where(gte(analyticsEvents.timestamp, startTimestamp));
 
   const sources: Record<string, number> = {};
   const pages: Record<string, number> = {};
