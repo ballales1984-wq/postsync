@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { analyticsEvents } from '@/db/schema';
-import { gt, desc } from 'drizzle-orm';
+
+const analyticsEvents: Array<{
+  eventType: string;
+  source: string;
+  urlPath: string;
+  sessionId: string;
+  timestamp: Date;
+}> = [];
 
 export async function GET(request: Request) {
   try {
@@ -12,33 +17,9 @@ export async function GET(request: Request) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    let events;
-
-    // Try to get from database if available
-    try {
-      if (db) {
-        events = await db
-          .select()
-          .from(analyticsEvents)
-          .where(gt(analyticsEvents.timestamp, startDate))
-          .orderBy(desc(analyticsEvents.timestamp));
-      }
-    } catch (dbError) {
-      console.error('DB error, using empty data:', dbError);
-      events = [];
-    }
-
-    if (!events || events.length === 0) {
-      return NextResponse.json({
-        views: 0,
-        viewers: 0,
-        bounce_rate: '0.00',
-        sources: {},
-        pages: {},
-        period: days,
-        daily_data: [],
-      });
-    }
+    const events = analyticsEvents.filter(
+      (e) => e.timestamp >= startDate
+    );
 
     const pageViews = events.filter((e) => e.eventType === 'page_view');
     const views = pageViews.length;
