@@ -1,33 +1,58 @@
 import { NextResponse } from "next/server";
 
-const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID;
+const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID || process.env.NEXT_PUBLIC_GA4_ID;
 const GA4_CLIENT_EMAIL = process.env.GA4_CLIENT_EMAIL;
-const GA4_PRIVATE_KEY = process.env.GA4_PRIVATE_KEY?.replace(/\\n/g, "\n");
+const GA4_PRIVATE_KEY = process.env.GA4_PRIVATE_KEY;
+
+function base64UrlEncode(data: string): string {
+  return Buffer.from(data).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
 
 async function getGa4AccessToken(): Promise<string | null> {
   if (!GA4_PRIVATE_KEY || !GA4_CLIENT_EMAIL) return null;
 
-  const jwtHeader = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
-  const jwtPayload = Buffer.from(
-    JSON.stringify({
-      iss: GA4_CLIENT_EMAIL,
-      scope: "https://www.googleapis.com/auth/analytics.readonly",
-      aud: "https://oauth2.googleapis.com/token",
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    })
-  ).toString("base64url");
+  const now = Math.floor(Date.now() / 1000);
+  const exp = now + 3600;
+  
+  const header = { alg: "RS256", typ: "JWT" };
+  const payload = {
+    iss: GA4_CLIENT_EMAIL,
+    scope: "https://www.googleapis.com/auth/analytics.readonly",
+    aud: "https://oauth2.googleapis.com/token",
+    iat: now,
+    exp: exp,
+  };
 
-  const signInput = `${jwtHeader}.${jwtPayload}`;
-  const signPayload = { alg: "RS256", typ: "JWT" };
+  const encodedHeader = base64UrlEncode(JSON.stringify(header));
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const signInput = `${encodedHeader}.${encodedPayload}`;
 
-  // Simple JWT creation (for demo - in production use proper JWT library)
-  const body = new URLSearchParams();
-  body.append(
-    "grant_type",
-    "urn:ietf:params:oauth:grant-type:jwt-bearer"
-  );
-  body.append("assertion", signInput + "." + Buffer.from(JSON.stringify(signPayload)).toString("baseurl"));
+  try {
+    const crypto = await import("crypto");
+    const sign = crypto.createSign("RSA-SHA256");
+    sign.update(signInput);
+    const signature = sign.sign(GA4_PRIVATE_KEY, "base64");
+    const encodedSignature = base64UrlEncode(signature);
+
+    const jwt = `${signInput}.${encodedSignature}`;
+
+    const body = new URLSearchParams();
+    body.append("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer");
+    body.append("assertion", jwt);
+
+    const res = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+
+    const data = await res.json();
+    return data.access_token || null;
+  } catch (e) {
+    console.error("JWT sign error:", e);
+    return null;
+  }
+}
 
   try {
     const res = await fetch("https://oauth2.googleapis.com/token", {
@@ -42,20 +67,29 @@ async function getGa4AccessToken(): Promise<string | null> {
   }
 }
 
+function normalizeGa4Id(id: string): string {
+  return id.replace(/^G-/, "").replace(/^properties\//, "");
+}
+
 async function fetchGa4Data(days: number) {
   if (!GA4_PROPERTY_ID || !GA4_PRIVATE_KEY || !GA4_CLIENT_EMAIL) {
+    console.log("GA4 not configured:", { hasProp: !!GA4_PROPERTY_ID, hasKey: !!GA4_PRIVATE_KEY, hasEmail: !!GA4_CLIENT_EMAIL });
     return null;
   }
 
   const accessToken = await getGa4AccessToken();
-  if (!accessToken) return null;
+  if (!accessToken) {
+    console.log("Failed to get GA4 access token");
+    return null;
+  }
 
+  const propertyId = normalizeGa4Id(GA4_PROPERTY_ID);
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
   const startDateStr = startDate.toISOString().split("T")[0];
   const endDateStr = new Date().toISOString().split("T")[0];
 
-  const url = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}:runReport`;
+  const url = `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`;
 
   try {
     const res = await fetch(url, {
