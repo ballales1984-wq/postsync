@@ -15,13 +15,22 @@ interface TrackEventParams {
 }
 
 export async function trackEvent(params: TrackEventParams) {
+  const sessionId = getSessionId();
+  const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const referrer = typeof document !== 'undefined' ? document.referrer : '';
+
   try {
     await fetch('/api/analytics/track', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        ...params,
+        session_id: sessionId,
+        user_agent: userAgent,
+        referrer: referrer,
+      }),
     });
   } catch (error) {
     console.error('Failed to track event:', error);
@@ -44,10 +53,7 @@ export function trackPageView(path?: string) {
     event_type: 'page_view',
     url_path: path || window.location.pathname,
     source: document.referrer || 'direct',
-    metadata: {
-      sessionId: getSessionId(),
-      userAgent: navigator.userAgent,
-    },
+    metadata: {},
   });
 }
 

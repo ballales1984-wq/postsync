@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { trackPageView } from '@/lib/analytics';
 
 interface AnalyticsData {
   views: number;
@@ -25,6 +26,10 @@ export default function AnalyticsPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+
+  useEffect(() => {
+    trackPageView('/analytics');
+  }, []);
 
   useEffect(() => {
     async function fetchAnalytics() {

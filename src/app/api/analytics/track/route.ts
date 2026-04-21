@@ -1,22 +1,11 @@
 import { NextResponse } from 'next/server';
-
-const inMemoryAnalytics: {
-  events: Array<{
-    id: string;
-    eventType: string;
-    source: string;
-    urlPath: string;
-    metadata: Record<string, unknown>;
-    timestamp: Date;
-  }>;
-} = {
-  events: [],
-};
+import { db } from '@/db';
+import { analyticsEvents } from '@/db/schema';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { event_type, source, url_path, metadata } = body;
+    const { event_type, source, url_path, metadata, session_id, user_agent, referrer } = body;
 
     if (!event_type) {
       return NextResponse.json(
@@ -25,14 +14,18 @@ export async function POST(request: Request) {
       );
     }
 
-    inMemoryAnalytics.events.push({
-      id: crypto.randomUUID(),
-      eventType: event_type,
-      source: source || 'direct',
-      urlPath: url_path || '',
-      metadata: metadata || {},
-      timestamp: new Date(),
-    });
+    // Store to database if available
+    if (db) {
+      await db.insert(analyticsEvents).values({
+        eventType: event_type,
+        source: source || 'direct',
+        urlPath: url_path || '',
+        sessionId: session_id || '',
+        userAgent: user_agent || '',
+        referrer: referrer || '',
+        metadata: metadata ? JSON.stringify(metadata) : '',
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
