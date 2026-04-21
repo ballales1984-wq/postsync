@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react';
 import { trackPageView } from '@/lib/analytics';
 
-const GA4_PROPERTY_ID = 'G-4H8PKV46MQ';
-
 interface AnalyticsData {
   views: number;
   visitors: number;
@@ -28,15 +26,9 @@ export default function AnalyticsPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [ga4Active, setGa4Active] = useState(false);
 
   useEffect(() => {
     trackPageView('/analytics');
-    
-    // Check if GA4 is tracking
-    if (typeof window !== 'undefined' && (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag) {
-      setGa4Active(true);
-    }
   }, []);
 
   useEffect(() => {
@@ -106,12 +98,6 @@ export default function AnalyticsPage() {
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-white">Analytics</h1>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="px-2 py-1 bg-green-600/20 text-green-400 rounded-full flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                GA4: {GA4_PROPERTY_ID}
-              </span>
-            </div>
           </div>
           <div className="flex gap-2">
             <button
