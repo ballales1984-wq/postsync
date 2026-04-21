@@ -95,6 +95,13 @@ _iub.csConfiguration = {"siteId":4477711,"cookiePolicyId":90455251,"lang":"en","
                     📅
                   </Link>
                   <Link
+                    href="/analytics"
+                    className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    title="Analytics"
+                  >
+                    📊
+                  </Link>
+                  <Link
                     href="/pricing"
                     className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                     title="Scarica App"
