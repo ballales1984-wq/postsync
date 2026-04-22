@@ -1,7 +1,11 @@
-import { createDatabase } from "@kilocode/app-builder-db";
+import { drizzle } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client";
 import * as schema from "./schema";
 
-const globalDb = globalThis as unknown as { __db?: ReturnType<typeof createDatabase<typeof schema>> };
+const TURSO_URL = process.env.TURSO_URL || process.env.DB_URL;
+const TURSO_TOKEN = process.env.TURSO_TOKEN || process.env.DB_TOKEN;
+
+const globalDb = globalThis as unknown as { __db?: ReturnType<typeof drizzle> };
 
 const mockDb = {
   select: () => ({ from: () => ({ where: () => [], orderBy: () => [] }) }),
@@ -11,26 +15,29 @@ const mockDb = {
 };
 
 function isBuildTime(): boolean {
-  return (process.env as any).NEXT_PHASE === 'phase-production-build';
+  return (process.env as any).NEXT_PHASE === "phase-production-build";
+}
+
+function createDb() {
+  if (!TURSO_URL) return null;
+  const client = createClient({ url: TURSO_URL, authToken: TURSO_TOKEN });
+  return drizzle(client, { schema });
 }
 
 export function getDb() {
-  if (isBuildTime()) {
-    return mockDb as any;
-  }
-  if (!globalDb.__db) {
-    globalDb.__db = createDatabase(schema);
+  if (isBuildTime()) return null as unknown as ReturnType<typeof drizzle>;
+  if (!globalDb.__db && TURSO_URL) {
+    globalDb.__db = createDb();
   }
   return globalDb.__db;
 }
 
-export const db = new Proxy({} as ReturnType<typeof createDatabase<typeof schema>>, {
+export const db = new Proxy({} as ReturnType<typeof drizzle>, {
   get(_target, prop) {
     const database = getDb();
+    if (!database) return (mockDb as any)[prop];
     const value = database[prop as keyof typeof database];
-    if (typeof value === "function") {
-      return value.bind(database);
-    }
+    if (typeof value === "function") return value.bind(database);
     return value;
   },
 });
