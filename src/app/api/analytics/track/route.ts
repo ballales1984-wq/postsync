@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server';
-
-const analyticsEvents: Array<{
-  eventType: string;
-  source: string;
-  urlPath: string;
-  sessionId: string;
-  userAgent: string;
-  referrer: string;
-  timestamp: Date;
-}> = [];
+import { db } from '@/db';
+import { analyticsEvents } from '@/db/schema';
 
 export async function POST(request: Request) {
   try {
@@ -22,14 +14,13 @@ export async function POST(request: Request) {
       );
     }
 
-    analyticsEvents.push({
+    await db.insert(analyticsEvents).values({
       eventType: event_type,
       source: source || 'direct',
       urlPath: url_path || '',
       sessionId: session_id || '',
       userAgent: user_agent || '',
       referrer: referrer || '',
-      timestamp: new Date(),
     });
 
     return NextResponse.json({ success: true });
@@ -40,8 +31,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
-
-export async function GET() {
-  return NextResponse.json(analyticsEvents);
 }
