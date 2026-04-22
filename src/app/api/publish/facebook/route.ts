@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
 
     // Prefer pages over personal accounts
-    const pageAccount = pages.find((p) => p.accountName.includes("(Pagina)")) || pages[0];
+    const pageAccount = pages.find((p: { accountName: string }) => p.accountName.includes("(Pagina)")) || pages[0];
 
     if (!pageAccount || !pageAccount.accessToken) {
       return NextResponse.json(
