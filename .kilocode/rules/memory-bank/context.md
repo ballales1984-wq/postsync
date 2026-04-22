@@ -65,3 +65,4 @@ PostSync is a complete social media management platform with AI text generation,
 | 2026-03-26 | PostSync MVP |
 | 2026-03-26 | Images, scheduling, OAuth, char limits |
 | 2026-03-26 | AI text generation, real Twitter publishing |
+| 2026-04-22 | Google Analytics MCP Server integration |

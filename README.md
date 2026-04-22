@@ -87,6 +87,53 @@ bun dev
 ```env
 GROQ_API_KEY=gsk_...      # Da groq.com (gratis)
 GROQ_MODEL=llama-3.3-70b-versatile
+
+# Google Analytics MCP Server (opzionale)
+GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
+GOOGLE_PROJECT_ID=your-project-id
+```
+
+### Google Analytics MCP Server
+
+Il server MCP permette di interrogare i dati Google Analytics 4 direttamente tramite AI.
+
+#### Prerequisiti
+
+1. **Abilitare API in Google Cloud Console**:
+   - Google Analytics Admin API
+   - Google Analytics Data API
+
+2. **Credenziali OAuth**:
+   ```bash
+   gcloud auth application-default login \
+     --scopes https://www.googleapis.com/auth/analytics.readonly,https://www.googleapis.com/auth/cloud-platform
+   ```
+
+#### Configurazione Gemini
+
+Aggiungi in `~/.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "analytics-mcp": {
+      "command": "pipx",
+      "args": ["run", "analytics-mcp"],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "path/to/credentials.json",
+        "GOOGLE_PROJECT_ID": "your-project-id"
+      }
+    }
+  }
+}
+```
+
+#### Esempi di prompt
+
+```
+what are the most popular events in my Google Analytics property in the last 180 days?
+were most of my users in the last 6 months logged in?
+what are the custom dimensions and metrics in my property?
 ```
 
 ---
